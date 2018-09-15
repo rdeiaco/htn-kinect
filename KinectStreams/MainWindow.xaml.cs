@@ -15,6 +15,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Firebase.Database;
 using Firebase.Database.Query;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace KinectStreams
 {
@@ -40,7 +42,7 @@ namespace KinectStreams
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
         IList<Body> _bodies;
-        //FirebaseClient _firebase;
+        FirebaseClient _firebase;
         Dictionary<ulong, double[]> _body_positions;
         double[] _signal_strengths;
         SensorPosition ANTENNA_POSITION_0 = new SensorPosition(-30.0, 0.0);
@@ -74,8 +76,16 @@ namespace KinectStreams
                 _reader.MultiSourceFrameArrived += Reader_MultiSourceFrameArrived;
 
                 _body_positions = new Dictionary<ulong, double[]>();
-                 //_firebase = new FirebaseClient("https://htn2018-acba7.firebaseio.com");
+                _firebase = new FirebaseClient("https://htn2018-acba7.firebaseio.com");
+                Thread firebase_thread = new Thread(firebasePollLoop);
+                firebase_thread.Start();
+
             }
+        }
+
+        private void firebasePollLoop()
+        {
+
         }
 
         private void Window_Closed(object sender, EventArgs e)
