@@ -29,6 +29,8 @@ namespace KinectStreams
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
         IList<Body> _bodies;
+        //FirebaseClient _firebase;
+        Dictionary<ulong, double[]> _body_positions; 
 
         #endregion
 
@@ -53,6 +55,9 @@ namespace KinectStreams
 
                 _reader = _sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Color | FrameSourceTypes.Depth | FrameSourceTypes.Infrared | FrameSourceTypes.Body);
                 _reader.MultiSourceFrameArrived += Reader_MultiSourceFrameArrived;
+
+                _body_positions = new Dictionary<ulong, double[]>();
+                 //_firebase = new FirebaseClient("https://htn2018-acba7.firebaseio.com");
             }
         }
 
@@ -71,7 +76,7 @@ namespace KinectStreams
 
         void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
         {
-            var firebase = new FirebaseClient("https://htn2018-acba7.firebaseio.com");
+            //var observable = firebase.Child("test").AsObservable<string>().Subscribe(s => Console.WriteLine(s));
 
             var reference = e.FrameReference.AcquireFrame();
 
@@ -85,6 +90,7 @@ namespace KinectStreams
             }
 
             // Body
+            var tracking_ids = new List<ulong>();
             using (var frame = reference.BodyFrameReference.AcquireFrame())
             {
                 if (frame != null)
@@ -101,13 +107,34 @@ namespace KinectStreams
                         {
                             if (body.IsTracked)
                             {
-                                var spinemid = body.Joints[JointType.SpineMid];
-                                CameraSpacePoint cameraPoint = spinemid.Position;
-                                float x = cameraPoint.X;
-                                float y = cameraPoint.Y;
-                                float z = cameraPoint.Z;
+                                // Keep track of all the skeletons tracked this iteration.
+                                tracking_ids.Add(body.TrackingId);
+                                var spine_mid = body.Joints[JointType.SpineMid];
+                                CameraSpacePoint cameraPoint = spine_mid.Position;
+                                double[] position = {cameraPoint.X, cameraPoint.Y, cameraPoint.Z}; 
+                                _body_positions[body.TrackingId] = position;
+                                List<ulong> stale_keys = new List<ulong>(); 
 
-                                Console.WriteLine("x={0}, y={1}, z={2}",x,y,z);
+                                // Iterate through dictionary, and remove stale tracking id's.
+                                foreach (KeyValuePair<ulong, double[]> entry in _body_positions)
+                                {
+                                    if (!tracking_ids.Contains(entry.Key)) {
+                                        stale_keys.Add(entry.Key);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Tracking ID = {0}", entry.Key);
+                                        Console.WriteLine("Positions = ({0}, {1}, {2})", entry.Value[0], entry.Value[1], entry.Value[2]);
+                                    }
+                                }
+
+                                foreach (ulong stale_key in stale_keys)
+                                {
+                                    _body_positions.Remove(stale_key);
+                                } 
+
+                              
+
 
                                 // Draw skeleton.
                                 canvas.DrawSkeleton(body);
