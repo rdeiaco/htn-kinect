@@ -99,6 +99,14 @@ namespace KinectStreams
                         {
                             if (body.IsTracked)
                             {
+                                var spinemid = body.Joints[JointType.SpineMid];
+                                CameraSpacePoint cameraPoint = spinemid.Position;
+                                float x = cameraPoint.X;
+                                float y = cameraPoint.Y;
+                                float z = cameraPoint.Z;
+
+                                Console.WriteLine("x={0}, y={1}, z={2}",x,y,z);
+
                                 // Draw skeleton.
                                 canvas.DrawSkeleton(body);
                             }
