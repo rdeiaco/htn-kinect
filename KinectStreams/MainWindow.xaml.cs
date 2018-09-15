@@ -13,6 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Firebase.Database;
+using Firebase.Database.Query;
 
 namespace KinectStreams
 {
@@ -27,8 +29,6 @@ namespace KinectStreams
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
         IList<Body> _bodies;
-
-        bool _displayBody = false;
 
         #endregion
 
@@ -71,6 +71,8 @@ namespace KinectStreams
 
         void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
         {
+            var firebase = new FirebaseClient("https://htn2018-acba7.firebaseio.com");
+
             var reference = e.FrameReference.AcquireFrame();
 
             // Color
