@@ -1,0 +1,17 @@
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\bin\Debug\KinectStreams.exe.config
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\bin\Debug\KinectStreams.exe
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\bin\Debug\KinectStreams.pdb
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\bin\Debug\Microsoft.Kinect.dll
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\bin\Debug\Microsoft.Kinect.xml
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\MainWindow.baml
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\App.baml
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\MainWindow.g.cs
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\App.g.cs
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams_MarkupCompile.cache
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.g.resources
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.Properties.Resources.resources
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.csproj.GenerateResource.cache
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.csproj.CoreCompileInputs.cache
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.csproj.CopyComplete
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.exe
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.pdb
