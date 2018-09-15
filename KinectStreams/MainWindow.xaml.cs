@@ -23,7 +23,6 @@ namespace KinectStreams
     {
         #region Members
 
-        Mode _mode = Mode.Color;
 
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
@@ -79,34 +78,7 @@ namespace KinectStreams
             {
                 if (frame != null)
                 {
-                    if (_mode == Mode.Color)
-                    {
-                        camera.Source = frame.ToBitmap();
-                    }
-                }
-            }
-
-            // Depth
-            using (var frame = reference.DepthFrameReference.AcquireFrame())
-            {
-                if (frame != null)
-                {
-                    if (_mode == Mode.Depth)
-                    {
-                        camera.Source = frame.ToBitmap();
-                    }
-                }
-            }
-
-            // Infrared
-            using (var frame = reference.InfraredFrameReference.AcquireFrame())
-            {
-                if (frame != null)
-                {
-                    if (_mode == Mode.Infrared)
-                    {
-                        camera.Source = frame.ToBitmap();
-                    }
+                    camera.Source = frame.ToBitmap();
                 }
             }
 
@@ -128,10 +100,7 @@ namespace KinectStreams
                             if (body.IsTracked)
                             {
                                 // Draw skeleton.
-                                if (_displayBody)
-                                {
-                                    canvas.DrawSkeleton(body);
-                                }
+                                canvas.DrawSkeleton(body);
                             }
                         }
                     }
@@ -139,33 +108,7 @@ namespace KinectStreams
             }
         }
 
-        private void Color_Click(object sender, RoutedEventArgs e)
-        {
-            _mode = Mode.Color;
-        }
-
-        private void Depth_Click(object sender, RoutedEventArgs e)
-        {
-            _mode = Mode.Depth;
-        }
-
-        private void Infrared_Click(object sender, RoutedEventArgs e)
-        {
-            _mode = Mode.Infrared;
-        }
-
-        private void Body_Click(object sender, RoutedEventArgs e)
-        {
-            _displayBody = !_displayBody;
-        }
-
         #endregion
     }
 
-    public enum Mode
-    {
-        Color,
-        Depth,
-        Infrared
-    }
 }

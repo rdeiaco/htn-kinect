@@ -15,3 +15,4 @@ C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.
 C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.csproj.CopyComplete
 C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.exe
 C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.pdb
+C:\Users\ryan_\source\repos\KinectStreams\KinectStreams\obj\Debug\KinectStreams.csprojAssemblyReference.cache
