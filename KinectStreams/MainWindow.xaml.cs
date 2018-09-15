@@ -18,6 +18,17 @@ using Firebase.Database.Query;
 
 namespace KinectStreams
 {
+    public struct SensorPosition
+    {
+        public double x, y;
+
+        public SensorPosition(double x, double y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -30,7 +41,13 @@ namespace KinectStreams
         MultiSourceFrameReader _reader;
         IList<Body> _bodies;
         //FirebaseClient _firebase;
-        Dictionary<ulong, double[]> _body_positions; 
+        Dictionary<ulong, double[]> _body_positions;
+        double[] _signal_strengths;
+        SensorPosition CAMERA_POSITION_0 = new SensorPosition(-30.0, 0.0);
+        SensorPosition CAMERA_POSITION_1 = new SensorPosition(30.0, 0.0);
+        SensorPosition CAMERA_POSITION_2 = new SensorPosition(0.0, -30.0);
+
+
 
         #endregion
 
@@ -89,6 +106,13 @@ namespace KinectStreams
                 }
             }
 
+            // Get most recent power readings from antennae.
+            getSignalStrengths();
+
+            // Get angle from signal strengths.
+            double angle = getAngle(_signal_strengths);
+            Console.WriteLine("Angle = {0}", angle);
+
             // Body
             var tracking_ids = new List<ulong>();
             using (var frame = reference.BodyFrameReference.AcquireFrame())
@@ -145,6 +169,60 @@ namespace KinectStreams
             }
         }
 
+        // Get the signal strengths from FireBase.
+        // Returns whether the database actually has updated since last call.
+        private bool getSignalStrengths()
+        {
+            // Assume watts for now.
+            double[] signal_strengths = { 900.0, Math.Sqrt(4500.0), Math.Sqrt(4500.0) };
+            _signal_strengths = signal_strengths;
+            return true;
+        }
+
+        // Calculates the angle in the Kinect frame based on
+        // the input signal strengths.
+        private double getAngle(double[] signal_strengths)
+        {
+            double A, B, C, D, E, F;
+            A = -2 * CAMERA_POSITION_0.x + 2 * CAMERA_POSITION_1.x;
+            B = -2 * CAMERA_POSITION_0.y + 2 * CAMERA_POSITION_1.y;
+            C = 1.0 / signal_strengths[0] - 1 / signal_strengths[1] -
+                CAMERA_POSITION_0.x * CAMERA_POSITION_0.x + CAMERA_POSITION_1.x * CAMERA_POSITION_1.x -
+                CAMERA_POSITION_0.y * CAMERA_POSITION_0.y + CAMERA_POSITION_1.y * CAMERA_POSITION_1.y;
+            D = -2 * CAMERA_POSITION_1.x + 2 * CAMERA_POSITION_2.x;
+            E = -2 * CAMERA_POSITION_1.y + 2 * CAMERA_POSITION_2.y;
+            F = 1.0 / signal_strengths[1] - 1 / signal_strengths[2] -
+                CAMERA_POSITION_1.x * CAMERA_POSITION_1.x + CAMERA_POSITION_2.x * CAMERA_POSITION_2.x -
+                CAMERA_POSITION_1.y * CAMERA_POSITION_1.y + CAMERA_POSITION_2.y * CAMERA_POSITION_2.y;
+
+            // Sanitize division.
+            double x_num = C * E - F * B;
+            double x_den = E * A - B * D;
+            double y_num = C * D - A * F;
+            double y_den = B * D - A * E;
+            double angle;
+
+            if (Math.Abs(x_den) < 1e-15)
+            {
+                Console.WriteLine("Error in x position calculation.");
+                angle = 0.0;
+                
+            }
+            else if (Math.Abs(y_den) < 1e-15)
+            {
+                Console.WriteLine("Error in y position calculation.");
+                angle = 0.0;
+            }
+            else
+            {
+                double x = x_num / x_den;
+                double y = y_num / y_den;
+                angle = Math.Atan2(y, x);
+            }
+
+            return angle;
+
+        }
         #endregion
     }
 
