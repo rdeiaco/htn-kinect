@@ -175,7 +175,40 @@ namespace KinectStreams
             canvas.DrawLine(body.Joints[JointType.AnkleLeft], body.Joints[JointType.FootLeft]);
             canvas.DrawLine(body.Joints[JointType.AnkleRight], body.Joints[JointType.FootRight]);
         }
+        public static void DrawRedSkeleton(this Canvas canvas, Body body)
+        {
+            if (body == null) return;
 
+            foreach (Joint joint in body.Joints.Values)
+            {
+                canvas.DrawPoint(joint);
+            }
+
+            canvas.DrawRedLine(body.Joints[JointType.Head], body.Joints[JointType.Neck]);
+            canvas.DrawRedLine(body.Joints[JointType.Neck], body.Joints[JointType.SpineShoulder]);
+            canvas.DrawRedLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.ShoulderLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.ShoulderRight]);
+            canvas.DrawRedLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.SpineMid]);
+            canvas.DrawRedLine(body.Joints[JointType.ShoulderLeft], body.Joints[JointType.ElbowLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.ShoulderRight], body.Joints[JointType.ElbowRight]);
+            canvas.DrawRedLine(body.Joints[JointType.ElbowLeft], body.Joints[JointType.WristLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.ElbowRight], body.Joints[JointType.WristRight]);
+            canvas.DrawRedLine(body.Joints[JointType.WristLeft], body.Joints[JointType.HandLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.WristRight], body.Joints[JointType.HandRight]);
+            canvas.DrawRedLine(body.Joints[JointType.HandLeft], body.Joints[JointType.HandTipLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.HandRight], body.Joints[JointType.HandTipRight]);
+            canvas.DrawRedLine(body.Joints[JointType.HandTipLeft], body.Joints[JointType.ThumbLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.HandTipRight], body.Joints[JointType.ThumbRight]);
+            canvas.DrawRedLine(body.Joints[JointType.SpineMid], body.Joints[JointType.SpineBase]);
+            canvas.DrawRedLine(body.Joints[JointType.SpineBase], body.Joints[JointType.HipLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.SpineBase], body.Joints[JointType.HipRight]);
+            canvas.DrawRedLine(body.Joints[JointType.HipLeft], body.Joints[JointType.KneeLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.HipRight], body.Joints[JointType.KneeRight]);
+            canvas.DrawRedLine(body.Joints[JointType.KneeLeft], body.Joints[JointType.AnkleLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.KneeRight], body.Joints[JointType.AnkleRight]);
+            canvas.DrawRedLine(body.Joints[JointType.AnkleLeft], body.Joints[JointType.FootLeft]);
+            canvas.DrawRedLine(body.Joints[JointType.AnkleRight], body.Joints[JointType.FootRight]);
+        } 
         public static void DrawPoint(this Canvas canvas, Joint joint)
         {
             if (joint.TrackingState == TrackingState.NotTracked) return;
@@ -214,7 +247,25 @@ namespace KinectStreams
 
             canvas.Children.Add(line);
         }
+        public static void DrawRedLine(this Canvas canvas, Joint first, Joint second)
+        {
+            if (first.TrackingState == TrackingState.NotTracked || second.TrackingState == TrackingState.NotTracked) return;
 
+            first = first.ScaleTo(canvas.ActualWidth, canvas.ActualHeight);
+            second = second.ScaleTo(canvas.ActualWidth, canvas.ActualHeight);
+
+            Line line = new Line
+            {
+                X1 = first.Position.X,
+                Y1 = first.Position.Y,
+                X2 = second.Position.X,
+                Y2 = second.Position.Y,
+                StrokeThickness = 10,
+                Stroke = new SolidColorBrush(Colors.Red)
+            };
+
+            canvas.Children.Add(line);
+        }
         #endregion
     }
 }

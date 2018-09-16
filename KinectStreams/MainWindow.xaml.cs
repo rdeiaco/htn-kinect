@@ -17,6 +17,8 @@ using Firebase.Database;
 using Firebase.Database.Query;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Data.Entity;
+using System.IO;
 
 namespace KinectStreams
 {
@@ -38,7 +40,7 @@ namespace KinectStreams
     {
         #region Members
 
-
+        bool recieved = false;
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
         IList<Body> _bodies;
@@ -48,11 +50,11 @@ namespace KinectStreams
         SensorPosition ANTENNA_POSITION_0 = new SensorPosition(-30.0, 0.0);
         SensorPosition ANTENNA_POSITION_1 = new SensorPosition(30.0, 0.0);
         SensorPosition ANTENNA_POSITION_2 = new SensorPosition(0.0, -30.0);
-
-
-
+        Body closest_body = null;
+        ulong closest_bodyid = 999999;
+        
         #endregion
-
+        
         #region Constructor
 
         public MainWindow()
@@ -66,8 +68,15 @@ namespace KinectStreams
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            _sensor = KinectSensor.GetDefault();
 
+            _signal_strengths = readSignalStrengths();
+            foreach (double signal_strength in _signal_strengths)
+            {
+                Console.WriteLine("Sensor Value = {0}", signal_strength);
+            }
+
+            _sensor = KinectSensor.GetDefault();
+            
             if (_sensor != null)
             {
                 _sensor.Open();
@@ -76,16 +85,9 @@ namespace KinectStreams
                 _reader.MultiSourceFrameArrived += Reader_MultiSourceFrameArrived;
 
                 _body_positions = new Dictionary<ulong, double[]>();
-                _firebase = new FirebaseClient("https://htn2018-acba7.firebaseio.com");
-                Thread firebase_thread = new Thread(firebasePollLoop);
-                firebase_thread.Start();
+                
 
             }
-        }
-
-        private void firebasePollLoop()
-        {
-
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -101,10 +103,28 @@ namespace KinectStreams
             }
         }
 
+        private double[] readSignalStrengths()
+        {
+            double[] sensor_vals = new double[3];
+            using (var reader = new StreamReader(@"H:\HTN2018\htn-kinect\KinectStreams\sensorvalues\sensor_values.csv"))
+            {
+                var line = reader.ReadLine();
+                var values = line.Split(',');
+                sensor_vals[0] = Math.Pow(10.0, Convert.ToDouble(values[0])/10.0);
+                sensor_vals[1] = Math.Pow(10.0, Convert.ToDouble(values[1])/10.0);
+                sensor_vals[2] = Math.Pow(10.0, Convert.ToDouble(values[2])/10.0);
+            }
+
+            return sensor_vals;
+        }
+
         void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
         {
-            //var observable = firebase.Child("test").AsObservable<string>().Subscribe(s => Console.WriteLine(s));
-
+            _signal_strengths = readSignalStrengths();
+            foreach (double signal_strength in _signal_strengths)
+            {
+                Console.WriteLine("Sensor Value = {0}", signal_strength);
+            }
             var reference = e.FrameReference.AcquireFrame();
 
             // Color
@@ -115,16 +135,12 @@ namespace KinectStreams
                     camera.Source = frame.ToBitmap();
                 }
             }
-
-            // Get most recent power readings from antennae.
-            getSignalStrengths();
-
+           
             // Get angle from signal strengths.
-            double angle = getAngle(_signal_strengths);
+            double angle = getAngle(readSignalStrengths());
             //double angle = getRobustAngle(_signal_strengths);
-            Console.WriteLine("Angle = {0}", angle);
-
-            // Body
+            //Console.WriteLine("Angle = {0}", angle);
+            
             var tracking_ids = new List<ulong>();
             using (var frame = reference.BodyFrameReference.AcquireFrame())
             {
@@ -136,6 +152,7 @@ namespace KinectStreams
 
                     frame.GetAndRefreshBodyData(_bodies);
 
+                    double min_angle_diff = 999999;
                     foreach (var body in _bodies)
                     {
                         if (body != null)
@@ -158,24 +175,41 @@ namespace KinectStreams
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Tracking ID = {0}", entry.Key);
-                                        Console.WriteLine("Positions = ({0}, {1}, {2})", entry.Value[0], entry.Value[1], entry.Value[2]);
+                                        //Console.WriteLine("Tracking ID = {0}", entry.Key);
+                                        //Console.WriteLine("Positions = ({0}, {1}, {2})", entry.Value[0], entry.Value[1], entry.Value[2]);
                                     }
                                 }
 
                                 foreach (ulong stale_key in stale_keys)
                                 {
                                     _body_positions.Remove(stale_key);
-                                } 
+                                }
 
-                              
-
-
-                                // Draw skeleton.
-                                canvas.DrawSkeleton(body);
+                                //Calculate angle of this body
+                                double this_body_angle = Math.Atan2(position[2], position[0]);
+                                double angle_diff = Math.Abs(this_body_angle - angle);
+                                if (angle_diff < min_angle_diff)
+                                {
+                                    //Found a body that's closer to the trilaterated router position
+                                    closest_body = body;
+                                    closest_bodyid = body.TrackingId;
+                                    min_angle_diff = angle_diff;
+                                }
                             }
                         }
                     }
+                    foreach (var body in _bodies)
+                    {
+                        if (body.TrackingId == closest_bodyid)
+                        {
+                            canvas.DrawRedSkeleton(body);
+                        }
+                        else
+                        {
+                            canvas.DrawSkeleton(body);
+                        }
+                    }
+                    //canvas.DrawRedSkeleton(closest_body);
                 }
             }
         }
@@ -232,7 +266,6 @@ namespace KinectStreams
             }
 
             return angle;
-
         }
 
         private double getRobustAngle(double[] signal_strengths)
@@ -248,7 +281,6 @@ namespace KinectStreams
                 Math.Sqrt(signal_strengths[2]));
             Console.WriteLine("a1, a2, a3 = {0}, {1}, {2}", a1, a2, a3);
             return (a1 + a2 + a3) / 3.0;
-
         }
 
         private double triangulate(double x1, double y1, double x2, double y2, double r1, double r2)

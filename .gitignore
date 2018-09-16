@@ -1,3 +1,5 @@
 KinectStreams/obj/
 KinectStreams/bin/
 .vs/
+packages/
+KinectStreams/packages.config
